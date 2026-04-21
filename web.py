@@ -30,6 +30,10 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+@app.route("/test")
+def test():
+    return "呂恩妮"
+
 @app.route("/spider1")
 def spider1():
     R = ""
