@@ -55,7 +55,7 @@ def search():
     
     if request.method == "POST":
         keyword = request.form.get("keyword")
-        collection_ref = db.collection("靜宜資管2026a")
+        collection_ref = db.collection("靜宜資管2026B")
         docs = collection_ref.get()
 
         for doc in docs:
@@ -73,7 +73,7 @@ def read():
     db = firestore.client()
 
     Temp = ""
-    collection_ref = db.collection("靜宜資管2026a")
+    collection_ref = db.collection("靜宜資管2026B")
     docs = collection_ref.order_by("lab", direction=firestore.Query.DESCENDING).limit(4).get()
     for doc in docs:
         Temp += str(doc.to_dict()) + "<br>"
