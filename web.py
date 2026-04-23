@@ -30,9 +30,21 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route("/test")
-def test():
-    return "呂恩妮"
+@app.route("/movie1")
+def movie1():
+    R = ""
+    url = "http://www.atmovies.com.tw/movie/next/"
+    Data = requests.get(url)
+    Data.encoding = "utf-8"
+    #print(Data.text)
+    sp = BeautifulSoup(Data.text, "html.parser")
+    result=sp.select("filmListAllX li")
+    for item in result:
+        introduce += "https://www.atmovies.com.tw" + item.fnd("a").get("href") 
+        R += "<a href=" + introduce + ">"item.fnd("img").get("alt") + "</a><br>"
+        post += "https://www.atmovies.com.tw" + item.fnd("img").get("src") 
+        R += "<img src=" + post +"> </img><br><br>"
+    return R
 
 @app.route("/spider1")
 def spider1():
