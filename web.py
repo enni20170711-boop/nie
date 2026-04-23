@@ -40,10 +40,10 @@ def movie1():
     sp = BeautifulSoup(Data.text, "html.parser")
     result=sp.select("filmListAllX li")
     for item in result:
-        introduce += "https://www.atmovies.com.tw" + item.fnd("a").get("href") 
-        R += "<a href=" + introduce + ">"item.fnd("img").get("alt") + "</a><br>"
-        post += "https://www.atmovies.com.tw" + item.fnd("img").get("src") 
-        R += "<img src=" + post +"> </img><br><br>"
+        introduce += "https://www.atmovies.com.tw" + item.find("a").get("href") 
+        R += "<a href=" + introduce + ">" + item.find("img").get("alt") + "</a><br>"
+        post = "https://www.atmovies.com.tw" + item.find("img").get("src") 
+        R += "<img src=" + post + "> </img><br><br>"
     return R
 
 @app.route("/spider1")
