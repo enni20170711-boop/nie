@@ -67,28 +67,38 @@ def spidermovie():
         #print(info)
     R+="網站最近更新日期："+ lastUpdate +"<br>"
     R+="總共爬取"+ str(total) + "部電影到資料庫"
-    R += f"<br><a href='/searchMovie'>前往搜尋頁面</a>"
     return R
 
 @app.route("/searchMovie", methods=["GET"])
 def searchMovie():
     db = firestore.client()
+    # 取得使用者輸入的關鍵字
     keyword = request.args.get("keyword", "").strip()
     results = []
-    if keyword:
-        docs = db.collection("電影2B").get()
-    for doc in docs:
-         movie = doc.to_dict()
-    if keyword.lower() in movie.get("title", "").lower():
-         results.append({
-             "id": doc.id,
-             "title": movie.get("title"),
-             "picture": movie.get("picture"),
-             "hyperlink": movie.get("hyperlink"),
-             "showDate": movie.get("showDate")
-         })
-    return render_template("searchMovie.html", results=results, keyword=keyword)
 
+    # 邏輯重點：只有在有輸入關鍵字時才去資料庫抓資料，避免程式報錯
+    if keyword:
+        # 指向你的 Firebase 集合「電影2B」
+        collection_ref = db.collection("電影2B")
+        docs = collection_ref.get()
+        
+        for doc in docs:
+            movie = doc.to_dict()
+            # 比對片名是否包含關鍵字 (忽略大小寫)
+            if keyword.lower() in movie.get("title", "").lower():
+                # 建立一筆搜尋結果，並補上 document ID
+                movie_data = {
+                    "id": doc.id,
+                    "title": movie.get("title"),
+                    "picture": movie.get("picture"),
+                    "hyperlink": movie.get("hyperlink"),
+                    "showDate": movie.get("showDate")
+                }
+                results.append(movie_data)
+
+    # 將結果傳送到 searchMovie.html
+    return render_template("searchMovie.html", results=results, keyword=keyword)
+    
 @app.route("/movie1", methods=["GET"])
 def movie1():
     keyword = request.args.get("keyword", "").strip()

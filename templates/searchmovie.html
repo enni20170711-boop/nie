@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>搜尋電影結果</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #e67e22; color: white; }
+        img { width: 100px; border-radius: 5px; }
+        .btn-home { display: inline-block; margin-top: 20px; text-decoration: none; color: #3498db; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>電影資料庫查詢</h1>
+    
+    <form action="/searchMovie" method="get">
+        <input type="text" name="keyword" placeholder="請輸入片名關鍵字" value="{{ keyword }}">
+        <button type="submit">搜尋</button>
+    </form>
+
+    {% if keyword %}
+        <p>搜尋關鍵字：<strong>{{ keyword }}</strong>，共找到 {{ results|length }} 部電影</p>
+        
+        {% if results %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>編號</th>
+                        <th>海報</th>
+                        <th>片名</th>
+                        <th>上映日期</th>
+                        <th>介紹頁</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movie in results %}
+                    <tr>
+                        <td>{{ movie.id }}</td>
+                        <td><img src="{{ movie.picture }}" alt="poster"></td>
+                        <td><strong>{{ movie.title }}</strong></td>
+                        <td>{{ movie.showDate }}</td>
+                        <td><a href="{{ movie.hyperlink }}" target="_blank">點我查看</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>查無符合「{{ keyword }}」的電影。</p>
+        {% endif %}
+    {% endif %}
+
+    <a href="/" class="btn-home">← 返回首頁</a>
+</div>
+
+</body>
+</html>
