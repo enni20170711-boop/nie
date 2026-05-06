@@ -67,7 +67,27 @@ def spidermovie():
         #print(info)
     R+="網站最近更新日期："+ lastUpdate +"<br>"
     R+="總共爬取"+ str(total) + "部電影到資料庫"
+    R += f"<br><a href='/searchMovie'>前往搜尋頁面</a>"
     return R
+
+@app.route("/searchMovie", methods=["GET"])
+def searchMovie():
+    db = firestore.client()
+    keyword = request.args.get("keyword", "").strip()
+    results = []
+    if keyword:
+        docs = db.collection("電影2B").get()
+    for doc in docs:
+         movie = doc.to_dict()
+    if keyword.lower() in movie.get("title", "").lower():
+         results.append({
+             "id": doc.id,
+             "title": movie.get("title"),
+             "picture": movie.get("picture"),
+             "hyperlink": movie.get("hyperlink"),
+             "showDate": movie.get("showDate")
+         })
+    return render_template("searchMovie.html", results=results, keyword=keyword)
 
 @app.route("/movie1", methods=["GET"])
 def movie1():
