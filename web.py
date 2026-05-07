@@ -30,6 +30,96 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+@app.route("/weather")
+def weather():
+    # 1. 取得使用者在網頁網址或表單輸入的縣市
+    # 這取代了原本的 city = input("請輸入縣市：")
+    city = request.args.get("city")
+
+    # 2. 如果使用者還沒有輸入，就先顯示一個網頁表單給他填寫
+    if not city:
+        return '''
+            <h2>氣象查詢系統</h2>
+            <form action="/weather" method="GET">
+                請輸入縣市 (例如：臺中市)：<input type="text" name="city" required>
+                <input type="submit" value="查詢">
+            </form>
+        '''
+
+    # 3. 處理字串 (台換成臺)
+    city_formatted = city.replace("台", "臺")
+   
+    # 4. 組合 API 網址 (已修正你原本程式碼中重複組合的問題)
+    token = "rdec-key-123-45678-011121314"
+    url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={token}&format=JSON&locationName={city_formatted}"
+   
+    # 為了避免你之前一直遇到的 10054 連線被阻擋問題，務必加上偽裝標頭
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'
+    }
+
+    try:
+        # 發送請求，記得加上 verify=False
+        Data = requests.get(url, headers=headers, verify=False, timeout=10)
+       
+        if Data.status_code == 200:
+            json_data = json.loads(Data.text)
+           
+            # 依照你原本的邏輯，挖出天氣與降雨機率
+            # 這裡包在 try 裡面是為了避免使用者輸入錯的縣市名稱（例如：台中縣）導致 JSON 找不到該路徑
+            try:
+                location_data = json_data["records"]["location"][0]
+                weather_status = location_data["weatherElement"][0]["time"][0]["parameter"]["parameterName"]
+                rain_prob = location_data["weatherElement"][1]["time"][0]["parameter"]["parameterName"]
+               
+                # 回傳結果加上簡單的 HTML 排版
+                return f'''
+                    <h2>查詢結果：{city_formatted}</h2>
+                    <p>目前天氣：{weather_status}</p>
+                    <p>降雨機率：{rain_prob}%</p>
+                    <br><br>
+                    <a href="/weather">返回重新查詢</a>
+                '''
+            except IndexError:
+                return f"找不到「{city}」的資料，請確認縣市名稱是否輸入正確（如：臺中市）。<br><a href='/weather'>返回重新查詢</a>"
+               
+        else:
+            return f"無法取得資料，錯誤代碼：{Data.status_code}"
+
+    except Exception as e:
+        return f"連線發生錯誤：{e}"
+
+if __name__ == "__main__":
+    # 啟動 Flask 伺服器
+    app.run(debug=True)
+
+
+@app.route("/road")
+def road():
+    R = "<h1>台中市十大肇事路口(113年10月)作者:呂恩妮</h1><br>"
+    url = "https://datacenter.taichung.gov.tw/swagger/OpenData/a1b899c0-511f-4e3d-b22b-814982a97e41"
+   
+    # 關鍵：加上這段偽裝標頭，讓伺服器以為你是瀏覽器
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+   
+    try:
+        # 同時包含 headers 和 verify=False
+        Data = requests.get(url, headers=headers, verify=False, timeout=10)
+       
+        if Data.status_code == 200:
+            JsonData = json.loads(Data.text)
+            for item in JsonData:
+                R += f"{item['路口名稱']}，原因：{item['主要肇因']}: 發生 {item['總件數']}件<br>"
+        else:
+            R += f"無法取得資料，錯誤代碼：{Data.status_code}"
+           
+    except Exception as e:
+        R += f"連線發生錯誤：{e}"
+       
+    return R
+
 @app.route("/spidermovie")
 def spidermovie():
     R =""
