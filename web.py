@@ -93,7 +93,6 @@ if __name__ == "__main__":
     # 啟動 Flask 伺服器
     app.run(debug=True)
 
-
 @app.route("/road")
 def road():
     R = "<h1>台中市十大肇事路口(113年10月)作者:呂恩妮</h1><br>"
