@@ -51,7 +51,7 @@ def webhook():
         
         # 假設你的電影資料存放在名為 "movies" 的 collection 中
         # 並且分級的欄位名稱叫做 "rate"
-        collection_ref = db.collection("movies")
+        collection_ref = db.collection("本週新片含分級")
         
         # 使用 Google Cloud Firestore 的 FieldFilter 進行條件查詢
         query = collection_ref.filter(filter=FieldFilter("rate", "==", target_rate))
