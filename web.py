@@ -41,15 +41,15 @@ def webhook():
 
     if (action == "rateChoice"):
         rate = req["queryResult"] ["parameters"] ["rate"]
-        info =“我是呂恩妮設計的機器人，您選擇的電影分級是：+ rate
+        info ="我是呂恩妮設計的機器人,您選擇的電影分級是：" + rate
         db = firestore. client()
         collection_ref = db.collection("本週新片含分級")
-        docs = collection_ref. get()
+        docs = collection_ref.get()
         result = ""
         for doc in docs:
-            dict = doc. to_ dict()
+            dict = doc.to_dict()
             if rate in dict["rate"]:
-                result +="片名：" +dict["title"] +"n"
+                result +="片名：" +dict["title"] +"\n"
                 result +="介紹：" +dict["hyperlink"] + "\n\n"
         info += result
     return make response(jsonify({"fulfillmentText": info}))
@@ -176,7 +176,7 @@ def weather():
         return f"連線發生錯誤：{e}"
 
     return R
-    
+
 @app.route("/road")
 def road():
     R = "<h1>台中市十大肇事路口(113年10月)作者:呂恩妮</h1><br>"
