@@ -30,53 +30,29 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route("/webhook", methods=["POST"])
+@app. route("/webhook", methods=["POST" ])
 def webhook():
-    # 1. 取得 Dialogflow 傳送過來的 JSON 資料
-    req = request.get_json(silent=True, force=True)
-    
-    # 2. 擷取 Dialogflow 解析出的參數 (Parameter)
-    # 備註：請確認你在 Dialogflow Intent 裡設定的分級參數名稱是什麼，這裡假設叫 "rate"
-    try:
-        target_rate = req.get("queryResult").get("parameters").get("rate")
-    except Exception as e:
-        target_rate = None
+    # build a request object
+    req = request-get_json(force-True)
+    # fetch queryResult from json
+    action = req["queryResult"] ["action" ]
+    #msg = req["queryResult"] ["queryText"]
+    #info-“我是呂恩妮設計的機器人，動作："+action +";查詢內容:" + msg
 
-    # 如果抓不到參數，給予預設回應
-    if not target_rate:
-        reply = "抱歉，我沒有抓到您想查詢的電影分級，請再試一次。"
-    else:
-        # 3. 連線 Firestore 查詢對應分級的電影
-        db = firestore.client()
-        
-        # 假設你的電影資料存放在名為 "movies" 的 collection 中
-        # 並且分級的欄位名稱叫做 "rate"
-        collection_ref = db.collection("本週新片含分級").document(movie_id)
-        
-        # 使用 Google Cloud Firestore 的 FieldFilter 進行條件查詢
-        query = collection_ref.filter(filter=FieldFilter("rate", "==", target_rate))
-        docs = query.get()
-        
-        movie_list = []
+    if (action == "rateChoice"):
+        rate = req["queryResult"] ["parameters"] ["rate"]
+        info =“我是呂恩妮設計的機器人，您選擇的電影分級是：+rate
+        db = firestore. client()
+        collection_ref = db.collection（"本週新片含分級"）
+        docs = collection_ref. get
+        result = ""
         for doc in docs:
-            movie_data = doc.to_dict()
-            if "title" in movie_data:
-                movie_list.append(movie_data["title"])
-        
-        # 4. 根據查詢結果組合要回傳給 Dialogflow 的文字
-        if movie_list:
-            # 將電影品名用逗號或換行串接起來
-            movies_str = "、".join(movie_list)
-            reply = f"本週上映的 {target_rate} 級電影有：{movies_str}"
-        else:
-            reply = f"目前資料庫中沒有找到 {target_rate} 級的電影喔！"
-
-    # 5. 包裝成 Dialogflow 要求的格式回傳 (Fulfillment Response)
-    response = {
-        "fulfillmentText": reply
-    }
-    
-    return jsonify(response)
+            dict = dod. to dict()
+            if rate in dict["rate"]:
+                result +-"片名：" +dict［"title"］ +"n"
+                result +-"介紹：" +dict["hyperlink"] + "\n\n"
+        info += result
+    return make response(jsonify({"fulfillmentText": info}))
 
 @app.route("/rate")
 def rate():
