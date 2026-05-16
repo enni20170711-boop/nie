@@ -30,29 +30,51 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app. route("/webhook", methods=["POST" ])
+@app.route("/webhook", methods=["POST" ])
 def webhook():
     # build a request object
     req = request.get_json(force=True)
     # fetch queryResult from json
     action = req["queryResult"] ["action" ]
-    #msg = req["queryResult"] ["queryText"]
-    #info = "我是呂恩妮設計的機器人, 動作："+ action +";查詢內容:" + msg
 
     if (action == "rateChoice"):
         rate = req["queryResult"] ["parameters"] ["rate"]
-        info ="我是呂恩妮設計的機器人,您選擇的電影分級是：" + rate
-        db = firestore. client()
+        
+        # ⭐【新增關鍵：把 Dialogflow 傳來的代號轉成你資料庫存的中文】
+        # 不論使用者輸入大寫 P、小寫 p 還是帶有「保」字，都統一用「保護級」去搜尋
+        if "P" in rate.upper() or "保" in rate:
+            search_rate = "保護級"
+        elif "G" in rate.upper() or "普" in rate:
+            search_rate = "普遍級"
+        elif "12" in rate:
+            search_rate = "輔12級"
+        elif "15" in rate:
+            search_rate = "輔15級"
+        elif "限" in rate or "R" in rate.upper():
+            search_rate = "限制級"
+        else:
+            search_rate = rate  # 如果都不是，就維持原本的字串去查
+
+        info = "我是呂恩妮設計的機器人,您選擇的電影分級是：" + rate + "\n\n"
+        db = firestore.client()
         collection_ref = db.collection("本週新片含分級")
         docs = collection_ref.get()
         result = ""
+        
         for doc in docs:
-            dict = doc.to_dict()
-            if rate in dict["rate"]:
-                result +="片名：" +dict["title"] +"\n"
-                result +="介紹：" +dict["hyperlink"] + "\n\n"
-        info += result
-    return make response(jsonify({"fulfillmentText": info}))
+            movie_dict = doc.to_dict() # 建議變數不要用內建的 dict
+            
+            # 使用轉換後的 search_rate 進行比對
+            if search_rate in movie_dict.get("rate", ""):
+                result += "片名：" + movie_dict.get("title", "") + "\n"
+                result += "介紹：" + movie_dict.get("hyperlink", "") + "\n\n"
+                
+        if result == "":
+            info += f"目前本週新片中沒有符合 【{search_rate}】 的電影喔！"
+        else:
+            info += result
+            
+    return make_response(jsonify({"fulfillmentText": info}))
 
 @app.route("/rate")
 def rate():
